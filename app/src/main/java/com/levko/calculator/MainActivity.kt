@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.levko.calculator.data.Calculator
 import com.levko.calculator.ui.theme.CalculatorTheme
 
 class MainActivity : ComponentActivity() {
@@ -54,18 +55,38 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CalculatorView(modifier: Modifier = Modifier) {
-    var expression by remember { mutableStateOf("9999") }
+    val ZERO = "0"
+    val NUMBERS = "0".."9"
+    var expression by remember { mutableStateOf("0") }
+    var isResult by remember { mutableStateOf(true) }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ExpressionField(
             expression,
-            { expression = "" },
+            { expression = ZERO },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
         HorizontalDivider(thickness = 2.dp)
-        ButtonsGrid({ text -> expression = "$expression$text" }, modifier = Modifier.fillMaxWidth())
+        ButtonsGrid({ text ->
+            when (text) {
+                "=" -> {
+                    expression = Calculator().calculate(expression).toString()
+                    isResult = true
+                }
+
+                in "0".."9" -> {
+                    expression = if (isResult) text else "$expression$text"
+                    isResult = false
+                }
+
+                else -> {
+                    expression = "$expression$text"
+                    isResult = false
+                }
+            }
+        }, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -83,11 +104,11 @@ fun ExpressionField(text: String, onClearClicked: () -> Unit, modifier: Modifier
 
 @Composable
 fun ButtonsGrid(onClicked: (text: String) -> Unit, modifier: Modifier = Modifier) {
-    val numbers =
+    val buttons =
         listOf("7", "8", "9", "/", "4", "5", "6", "*", "1", "2", "3", "-", "0", ".", "=", "+")
     LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = modifier.fillMaxWidth()) {
-        items(numbers.size) { index ->
-            CalculatorButton(numbers[index], onClicked, modifier = Modifier.padding(8.dp))
+        items(buttons.size) { index ->
+            CalculatorButton(buttons[index], onClicked, modifier = Modifier.padding(8.dp))
         }
     }
 }
