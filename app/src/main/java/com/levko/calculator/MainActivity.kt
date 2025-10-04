@@ -34,8 +34,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.levko.calculator.data.Calculator
 import com.levko.calculator.ui.theme.CalculatorTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var calculator: Calculator
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -43,6 +48,7 @@ class MainActivity : ComponentActivity() {
             CalculatorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CalculatorView(
+                        calculator,
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize()
@@ -54,15 +60,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CalculatorView(modifier: Modifier = Modifier) {
-    val ZERO = "0"
-    val NUMBERS = "0".."9"
-    var expression by remember { mutableStateOf("0") }
+fun CalculatorView(calculator: Calculator, modifier: Modifier = Modifier) {
+    var expression by remember { mutableStateOf(calculator.defaultExpression) }
     var isResult by remember { mutableStateOf(true) }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ExpressionField(
             expression,
-            { expression = ZERO },
+            { expression = calculator.defaultExpression },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -72,7 +76,7 @@ fun CalculatorView(modifier: Modifier = Modifier) {
         ButtonsGrid({ text ->
             when (text) {
                 "=" -> {
-                    expression = Calculator().calculate(expression).toString()
+                    expression = calculator.calculate(expression).toString()
                     isResult = true
                 }
 
@@ -130,9 +134,10 @@ fun CalculatorButton(
 @Preview
 @Composable
 private fun CalculatorViewPreview() {
+    val calculator = Calculator()
     CalculatorTheme(darkTheme = true) {
         Surface {
-            CalculatorView()
+            CalculatorView(calculator)
         }
     }
 }

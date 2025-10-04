@@ -1,9 +1,14 @@
 package com.levko.calculator.data
 
-class Calculator {
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class Calculator @Inject constructor() {
     private var expression = ""
     private var position = 0
     private var current: Char = ' '
+    val defaultExpression: String = "0.0"
 
     private val operationsMap = mapOf(
         '+' to { a: Double, b: Double ->
